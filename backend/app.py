@@ -10,7 +10,10 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, static_folder='../frontend/dist', static_url_path='')
+_root = os.path.dirname(os.path.abspath(__file__))
+_STATIC = os.path.join(_root, '..', 'frontend', 'dist')
+
+app = Flask(__name__, static_folder=_STATIC, static_url_path='')
 
 BASE_URL = 'https://mbscada.com/hartek/server'
 CREDENTIALS = {'clientId': 'HARTEK', 'username': 'userHartek', 'password': 'Hartek@123'}
@@ -119,7 +122,7 @@ def serve(path):
     return send_from_directory(app.static_folder, 'index.html')
 
 
-os.makedirs(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'), exist_ok=True)
+os.makedirs(_STATIC, exist_ok=True)
 
 logger.info('Starting background data refresher...')
 t = threading.Thread(target=refresh_data, daemon=True)
