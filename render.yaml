@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: hartek-scada-dashboard
+    env: python
+    buildCommand: |
+      curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs && cd frontend && npm ci && npm run build
+    startCommand: >
+      cd backend &&
+      gunicorn app:app --workers 2 --threads 2 --timeout 120 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
