@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_file
 import requests
 import json
 from datetime import datetime
@@ -13,7 +13,11 @@ logger = logging.getLogger(__name__)
 _root = os.path.dirname(os.path.abspath(__file__))
 _STATIC = os.path.join(_root, '..', 'frontend', 'dist')
 
-app = Flask(__name__, static_folder=_STATIC, static_url_path='')
+logger.info('Root: %s', _root)
+logger.info('Static folder: %s', _STATIC)
+logger.info('index.html exists: %s', os.path.exists(os.path.join(_STATIC, 'index.html')))
+
+app = Flask(__name__, static_folder=_STATIC, static_url_path=None)
 
 BASE_URL = 'https://mbscada.com/hartek/server'
 CREDENTIALS = {'clientId': 'HARTEK', 'username': 'userHartek', 'password': 'Hartek@123'}
@@ -117,9 +121,16 @@ def force_refresh():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    return send_from_directory(app.static_folder, 'index.html')
+    if not path:
+        path = 'index.html'
+    filepath = os.path.join(_STATIC, path)
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        return send_file(filepath)
+    filepath = os.path.join(_STATIC, 'index.html')
+    if os.path.exists(filepath):
+        return send_file(filepath)
+    logger.warning('Static file not found: %s', path)
+    return 'Not Found', 404
 
 
 os.makedirs(_STATIC, exist_ok=True)
